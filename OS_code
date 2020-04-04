@@ -1,0 +1,20 @@
+#include<stdio.h> 
+#include<conio.h>
+
+int main() 
+{
+	int Process,number;
+	int arrival_time[10],burst_time[10],iteration=1;
+	printf("Number of Processes you want : ");
+	scanf("%d",&number);
+
+	
+//	printf("\nFeed the data : \n");
+	printf("Process\t\tArrival Time\t\tBurst Time\n");
+	for(Process = 1;Process <= number;Process++)
+	{
+		printf("\nP%d\t\t",Process);
+		scanf("%d",&arrival_time[Process]); 
+		scanf("%d",&burst_time[Process]); 
+	} 
+}
