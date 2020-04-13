@@ -1,56 +1,131 @@
 #include<stdio.h>
 #include<conio.h>
+#define b_t Burst_time
+#define r_t remaining_time
+#define t_a_t1 Turn_Around_Time
+
+void RR(int number,int r_t[10],int Cur_t,int arrival_time[10], int burst_time[10]){
+
+	float average_wait1,average_t_a_t1;
+    int i,j,n=number,temp,b_t[20],Process[20],w_time[20],t_a_t1[20],totall=0,loc;
+
+    printf("\n\nRequired Outcome will be\n");
+
+    for(i=1;i<=n;i++)
+    {
+        b_t[i]=r_t[i];
+        w_time[i]=Cur_t-arrival_time[i]-b_t[i];
+		Process[i]=i;
+    }
+
+    for(i=1;i<=n;i++)
+    {
+        loc=i;
+        for(j=i+1;j<=n;j++)
+        {
+            if(b_t[j]>b_t[loc]){  // Checking which process needs to be prioritised
+            	loc=j;
+            }
+        }
+
+        // placing that Burst time data at the top which requires greater
+		 // amount of burst time by SWAPPING.
+        temp=b_t[i];
+        b_t[i]=b_t[loc];
+        b_t[loc]=temp;
+
+        // Updating the processes depending upon its burst time by SWAPPING.
+        temp=Process[i];
+        Process[i]=Process[loc];
+        Process[loc]=temp;
+    }
+
+    for(i=2;i<=n;i++)
+    {
+        for(j=1;j<=i;j++){
+        	w_time[i]+=b_t[j];
+        }
+        totall+=w_time[i];
+    }
+
+    average_wait1=(float)totall/n;
+    totall=0;
+    printf("\nProcess\t\tBurst_time\t\tWaiting_time\t\tTurnaround Time");
+    for(i=1;i<=n;i++)
+    {
+        t_a_t1[i]=b_t[i]+w_time[i];
+        totall=totall + t_a_t1[i];
+        printf("\nP%d\t\t\t%d\t\t\t%d\t\t\t%d",Process[i],b_t[i],w_time[i],t_a_t1[i]);
+    }
+    average_t_a_t1=(float)totall/n;
+    printf("\nAverage waiting time = %f",average_wait1);
+    printf("\nAverage turnaround time = %f\n",average_t_a_t1);
+
+}
 
 int main()
 {
-	int Process,j,number,Current_time,Remaining_Process,signal=0,time,wait=0,turn_around_time=0;
-	int arrival_time[10],burst_time[10],remaining_time[10],iteration=1;
-	printf("Number of Processes you want : ");
+	int Process,j,number,Current_time,Remaining_Process;
+	int signal=0,time;
+	int wait=0,t_a_t1=0;
+	int arrival_time[10],b_t[10],r_t[10],iteration=1;
+	printf("Number of Processes by User : ");
 	scanf("%d",&number);
 	Remaining_Process = number;
 
-//	printf("\nFeed the data : \n");
 	printf("Process\t\tArrival Time\t\tBurst Time\n");
 	for(Process = 1;Process <= number;Process++)
 	{
 		printf("\nP%d\t\t",Process);
+
 		scanf("%d",&arrival_time[Process]);
-		scanf("%d",&burst_time[Process]);
-		remaining_time[Process]=burst_time[Process];
+
+		scanf("%d",&b_t[Process]);
+
+		r_t[Process]=b_t[Process];
 	}
-	printf("The time for first iteration is 6.\n");
+	printf("Time Quantum : \n");
+	printf("\nThe time quantum for first iteration is 6.\n");
 	time=6;
 	Current_time=0;
 	for(Process=0;Remaining_Process!=0;)
 	{
-		if(remaining_time[Process]<=time && remaining_time[Process]>0)
+		if(r_t[Process]<=time && r_t[Process]>0)  // Checks if the process needs to enter or stay in CPU or to be moved out of it.
 		{
-			Current_time+=remaining_time[Process];
-			remaining_time[Process]=0;
+			Current_time+=r_t[Process];
+			r_t[Process]=0;
 			signal=1;
 		}
-		else if(remaining_time[Process]>0)
+		else if(r_t[Process]>0)
 		{
-			remaining_time[Process]-=time;
+			r_t[Process] -= time;  // Updating the remaining time after it goes
+			                                 // into memory for the duration of given time quantum
 			Current_time+=time;
 		}
-		if(remaining_time[Process]==0 && signal==1)
-		{ printf("%d",Process);
-			Remaining_Process--;
-			printf("P%d",Process+1);
-			printf("\t\t%d",Current_time - arrival_time[Process]);
-			printf("\t\t%d\n",Current_time - burst_time[Process] - arrival_time[Process]);
-			wait+=Current_time - arrival_time[Process] - burst_time[Process];
-			turn_around_time += Current_time - arrival_time[Process];
+		if(r_t[Process]==0 && signal==1)
+		{
+		    printf("%d",Process);
+			Remaining_Process--;  // Decrementing the count of the processes as its job is done.
+
+			printf("P %d",Process+1);
+
+			printf("\t\t\t%d",Current_time-arrival_time[Process]);
+
+			printf("\t\t\t%d\n",Current_time-b_t[Process]-arrival_time[Process]);
+
+			wait += Current_time - arrival_time[Process] - b_t[Process];
+
+			t_a_t1 += Current_time - arrival_time[Process];
+
 			signal=0;
 
 		}
-		if(Process==number-1){
+		if( Process == number-1){
 			iteration++;
 			if(iteration==2){
 				Process=0;
 				time=10;
-				printf("The time for second iteration is 10. \n");
+				printf("\nTime quantum for the second iteration is 10. \n");
 			}
 			else{
 				break;
@@ -63,5 +138,9 @@ int main()
 			Process=0;
 		}
 	}
+
+ RR(number,r_t,Current_time,arrival_time,b_t); // Implementation of Round
+                  // Robin scheduling through array to prioritise the processes requiring more time than the other
+				  // processes.
 	return 0;
 }
